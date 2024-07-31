@@ -2,9 +2,8 @@
 -A
 B
 -C
-4
+3
 -B OR C
 A OR C
-A OR -B
-{}
+-B OR A
 YES
