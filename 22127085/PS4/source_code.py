@@ -19,7 +19,7 @@ class Clause:
     @staticmethod
     def negate_literal(literal: str) -> str:
         """Negate a single literal."""
-        return literal[1:] if literal.startswith('-') else '-' + literal
+        return literal[1:] if literal.startswith('-') else '-' + literal02
 
     def resolve(self, other: 'Clause') -> List['Clause']:
         """Resolve this clause with another clause."""
