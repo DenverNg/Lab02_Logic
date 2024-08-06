@@ -14,11 +14,10 @@ C
 D
 A OR C
 A OR D
--B OR E
 B OR E
+-B OR E
 C OR E
 D OR E
-0
 3
 {}
 E

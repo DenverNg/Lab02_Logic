@@ -12,7 +12,6 @@ S
 P OR Q
 Q OR R
 Q OR S
-0
 2
 {}
 Q

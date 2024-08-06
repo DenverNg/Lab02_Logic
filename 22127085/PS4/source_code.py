@@ -66,6 +66,7 @@ class KnowledgeBase:
         for negated_clause in negated_alpha_clauses:
             self.add_clause(negated_clause)
 
+        # Print the updated knowledge base
         print("Knowledge Base after adding negation of alpha:")
         self.print_kb()
 
@@ -84,7 +85,6 @@ class KnowledgeBase:
                 for resolvent in resolvents:
                     if not resolvent.literals:
                         step_clauses.append(resolvent)
-                        all_steps.append([])  # Empty step
                         all_steps.append(list(step_clauses))
                         self.print_resolutions(all_resolutions)
                         return all_steps, True
@@ -93,10 +93,15 @@ class KnowledgeBase:
                     all_resolutions.append((clause1, clause2, resolvent))
 
             if not step_clauses:
-                all_steps.append([])  # Append empty step
+                # Only append step_clauses if it is not empty
+                if step_clauses:
+                    all_steps.append(step_clauses)
+                # Append an empty step for clarity in output
+                all_steps.append([])
                 self.print_resolutions(all_resolutions)
                 return all_steps, False
 
+            # Sort and deduplicate step_clauses before appending
             step_clauses = sorted(set(step_clauses), key=lambda c: sorted(
                 c.literals, key=lambda lit: lit.lstrip('-')))
             all_steps.append(step_clauses)

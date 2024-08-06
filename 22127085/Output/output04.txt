@@ -5,8 +5,8 @@
 -C OR E
 -A OR -B OR -D OR E
 10
-C
 -C
+C
 -A OR -D
 -A OR E
 -B OR -D
@@ -15,7 +15,6 @@ C
 -A OR -B OR E
 -A OR -D OR E
 -B OR -D OR E
-0
 7
 {}
 -A
