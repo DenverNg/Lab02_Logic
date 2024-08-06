@@ -1,6 +1,5 @@
 import argparse
 from typing import List, Tuple, Set
-import os
 
 
 class Clause:
@@ -12,13 +11,8 @@ class Clause:
         literals = set(clause_str.strip().split(' OR '))
         return Clause(literals)
 
-    def negate(self) -> List['Clause']:
-        negated_clauses = []
-        for literal in self.literals:
-            negated_literal = self.negate_literal(literal)
-            negated_clause = Clause({negated_literal})
-            negated_clauses.append(negated_clause)
-        return negated_clauses
+    def negate(self) -> 'Clause':
+        return Clause({self.negate_literal(literal) for literal in self.literals})
 
     @staticmethod
     def negate_literal(literal: str) -> str:
@@ -40,8 +34,9 @@ class Clause:
         return any(self.negate_literal(literal) in self.literals for literal in self.literals)
 
     def __str__(self) -> str:
-        def sort_key(literal: str) -> str:
-            return literal.lstrip('-')
+        def sort_key(literal: str) -> int:
+            base_literal = literal.lstrip('-')
+            return base_literal
 
         sorted_literals = sorted(self.literals, key=sort_key)
         return ' OR '.join(sorted_literals) if self.literals else '{}'
@@ -62,12 +57,8 @@ class KnowledgeBase:
         self.clauses.append(clause)
 
     def pl_resolution(self, alpha: Clause) -> Tuple[List[List[Clause]], bool]:
-        negated_alpha_clauses = alpha.negate()
-        for negated_clause in negated_alpha_clauses:
-            self.add_clause(negated_clause)
-
-        print("Knowledge Base after adding negation of alpha:")
-        self.print_kb()
+        negated_alpha = alpha.negate()
+        self.add_clause(negated_alpha)
 
         all_clauses = self.clauses.copy()
         all_steps = []
@@ -103,16 +94,6 @@ class KnowledgeBase:
             all_clauses.extend(step_clauses)
             self.print_resolutions(all_resolutions)
 
-    def print_kb(self):
-        """Print the knowledge base clauses."""
-        if not self.clauses:
-            print("Knowledge Base is empty.")
-            return
-
-        for clause in self.clauses:
-            print(str(clause))
-        print("------")
-
     def print_resolutions(self, resolutions):
         """Print out all resolution steps with loop information."""
         print(f"Loop {self.loop_count}:")
@@ -122,6 +103,7 @@ class KnowledgeBase:
             print(f"Resolving: {clause1} with {clause2}")
             print(f"Result: {resolvent}")
         print("------")
+        print()  # Print a newline for better readability
 
 
 def format_output(all_steps: List[List[Clause]], entails: bool) -> str:
@@ -130,7 +112,6 @@ def format_output(all_steps: List[List[Clause]], entails: bool) -> str:
 
     def clause_sort_key(clause: Clause) -> list:
         return [lit.lstrip('-') for lit in sorted(clause.literals)]
-
     for step in all_steps:
         unique_clauses = sorted(set(step), key=lambda c: (
             len(c.literals), clause_sort_key(c)))
@@ -141,6 +122,7 @@ def format_output(all_steps: List[List[Clause]], entails: bool) -> str:
     return '\n'.join(output_lines)
 
 
+
 def parse_input(file_path: str) -> Tuple[Clause, List[Clause]]:
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -149,65 +131,28 @@ def parse_input(file_path: str) -> Tuple[Clause, List[Clause]]:
         kb = [Clause.parse(lines[i + 2].strip()) for i in range(n)]
     return alpha, kb
 
-
 def main():
     parser = argparse.ArgumentParser(
         description='PL Resolution to check if KB entails alpha.')
     parser.add_argument('-i', '--input_file', type=str,
-                        help='Path to the input file')
+                        required=True, help='Path to the input file')
     parser.add_argument('-o', '--output_file', type=str,
-                        help='Path to the output file')
-    parser.add_argument('-all', action='store_true',
-                        help='Run all input files in the Input folder')
+                        required=True, help='Path to the output file')
 
     args = parser.parse_args()
+    alpha, clauses = parse_input(args.input_file)
 
-    if args.all:
-        # Process all files in the Input folder
-        input_folder = 'Input'
-        output_folder = 'Output'
-        # Create Output folder if it doesn't exist
-        os.makedirs(output_folder, exist_ok=True)
+    kb = KnowledgeBase()
+    for clause in clauses:
+        kb.add_clause(clause)
 
-        for i in range(8):
-            input_file = os.path.join(input_folder, f'input0{i}.txt')
-            output_file = os.path.join(output_folder, f'output0{i}.txt')
+    all_steps, entails = kb.pl_resolution(alpha)
+    output = format_output(all_steps, entails)
 
-            if os.path.exists(input_file):
-                alpha, clauses = parse_input(input_file)
+    with open(args.output_file, 'w') as file:
+        file.write(output)
 
-                kb = KnowledgeBase()
-                for clause in clauses:
-                    kb.add_clause(clause)
-
-                all_steps, entails = kb.pl_resolution(alpha)
-                output = format_output(all_steps, entails)
-
-                with open(output_file, 'w') as file:
-                    file.write(output)
-
-                print(f"Processed {input_file} -> {output_file}")
-            else:
-                print(f"Input file {input_file} does not exist.")
-
-    elif args.input_file and args.output_file:
-        # Process single input file
-        alpha, clauses = parse_input(args.input_file)
-
-        kb = KnowledgeBase()
-        for clause in clauses:
-            kb.add_clause(clause)
-
-        all_steps, entails = kb.pl_resolution(alpha)
-        output = format_output(all_steps, entails)
-
-        with open(args.output_file, 'w') as file:
-            file.write(output)
-
-        print(f"Processed {args.input_file} -> {args.output_file}")
-
-    else:
-        print("Please provide either an input file and an output file, or use the -all option.")
+    print(output)
 
 
 if __name__ == "__main__":

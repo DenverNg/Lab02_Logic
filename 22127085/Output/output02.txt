@@ -1,9 +1,10 @@
 2
--B OR C
 -C
+-B OR C
 2
 -A OR C
--B OR A
+A OR -B
 1
--C OR A
+A OR -C
+0
 NO

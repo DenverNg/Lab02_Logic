@@ -2,7 +2,6 @@ import argparse
 from typing import List, Tuple, Set
 import os
 
-
 class Clause:
     def __init__(self, literals: Set[str]):
         self.literals = literals
@@ -68,7 +67,7 @@ class KnowledgeBase:
 
         print("Knowledge Base after adding negation of alpha:")
         self.print_kb()
-
+        
         all_clauses = self.clauses.copy()
         all_steps = []
         all_resolutions = []
@@ -103,6 +102,7 @@ class KnowledgeBase:
             all_clauses.extend(step_clauses)
             self.print_resolutions(all_resolutions)
 
+    
     def print_kb(self):
         """Print the knowledge base clauses."""
         if not self.clauses:
@@ -112,7 +112,7 @@ class KnowledgeBase:
         for clause in self.clauses:
             print(str(clause))
         print("------")
-
+        
     def print_resolutions(self, resolutions):
         """Print out all resolution steps with loop information."""
         print(f"Loop {self.loop_count}:")
