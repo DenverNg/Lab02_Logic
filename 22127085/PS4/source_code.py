@@ -66,7 +66,6 @@ class KnowledgeBase:
         for negated_clause in negated_alpha_clauses:
             self.add_clause(negated_clause)
 
-        # Print the updated knowledge base
         print("Knowledge Base after adding negation of alpha:")
         self.print_kb()
 
@@ -93,15 +92,12 @@ class KnowledgeBase:
                     all_resolutions.append((clause1, clause2, resolvent))
 
             if not step_clauses:
-                # Only append step_clauses if it is not empty
                 if step_clauses:
                     all_steps.append(step_clauses)
-                # Append an empty step for clarity in output
                 all_steps.append([])
                 self.print_resolutions(all_resolutions)
                 return all_steps, False
 
-            # Sort and deduplicate step_clauses before appending
             step_clauses = sorted(set(step_clauses), key=lambda c: sorted(
                 c.literals, key=lambda lit: lit.lstrip('-')))
             all_steps.append(step_clauses)
@@ -109,7 +105,6 @@ class KnowledgeBase:
             self.print_resolutions(all_resolutions)
 
     def print_kb(self):
-        """Print the knowledge base clauses."""
         if not self.clauses:
             print("Knowledge Base is empty.")
             return
@@ -119,7 +114,6 @@ class KnowledgeBase:
         print("------")
 
     def print_resolutions(self, resolutions):
-        """Print out all resolution steps with loop information."""
         print(f"Loop {self.loop_count}:")
         if not resolutions:
             print("No resolutions in this loop.")
@@ -130,7 +124,6 @@ class KnowledgeBase:
 
 
 def format_output(all_steps: List[List[Clause]], entails: bool) -> str:
-    """Format the output data."""
     output_lines = []
 
     def clause_sort_key(clause: Clause) -> list:
@@ -156,6 +149,18 @@ def parse_input(file_path: str) -> Tuple[Clause, List[Clause]]:
 
 
 def main():
+    '''Main function to run the program.
+    -----------------------------------
+    Run the program in command line with the following options:
+    -i or --input_file: Path to the input file
+    -o or --output_file: Path to the output file
+    -all: Run all input files in the Input folder
+    -----------------------------------
+    Syntax: 
+    python source_code.py -i <input_file> -o <output_file>
+    or
+    python source_code.py -all
+    '''
     parser = argparse.ArgumentParser(
         description='PL Resolution to check if KB entails alpha.')
     parser.add_argument('-i', '--input_file', type=str,
@@ -168,10 +173,9 @@ def main():
     args = parser.parse_args()
 
     if args.all:
-        # Process all files in the Input folder
         input_folder = 'Input'
         output_folder = 'Output'
-        # Create Output folder if it doesn't exist
+
         os.makedirs(output_folder, exist_ok=True)
 
         for i in range(8):
@@ -196,7 +200,6 @@ def main():
                 print(f"Input file {input_file} does not exist.")
 
     elif args.input_file and args.output_file:
-        # Process single input file
         alpha, clauses = parse_input(args.input_file)
 
         kb = KnowledgeBase()
