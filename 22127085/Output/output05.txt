@@ -8,8 +8,8 @@ C OR D
 -D OR E
 11
 A
--B
 B
+-B
 C
 D
 A OR C

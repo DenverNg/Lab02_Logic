@@ -34,6 +34,9 @@ class Clause:
                 new_clause = Clause(new_literals)
                 if not new_clause.contains_tautology():
                     resolvents.append(new_clause)
+                    # Immediately return if an empty clause is found
+                    if not new_clause.literals:
+                        return [new_clause]  # Return only the empty clause
         return resolvents
 
     def contains_tautology(self) -> bool:
@@ -82,21 +85,21 @@ class KnowledgeBase:
             for (clause1, clause2) in pairs:
                 resolvents = clause1.resolve(clause2)
                 for resolvent in resolvents:
+                    all_resolutions.append((clause1, clause2, resolvent))
                     if not resolvent.literals:
                         step_clauses.append(resolvent)
                         all_steps.append(list(step_clauses))
                         self.print_resolutions(all_resolutions)
-                        return all_steps, True
+                        return all_steps, True, clause1, clause2  # Return the conflicting clauses
                     if resolvent not in all_clauses and resolvent not in step_clauses:
                         step_clauses.append(resolvent)
-                    all_resolutions.append((clause1, clause2, resolvent))
 
             if not step_clauses:
                 if step_clauses:
                     all_steps.append(step_clauses)
                 all_steps.append([])
                 self.print_resolutions(all_resolutions)
-                return all_steps, False
+                return all_steps, False, None, None
 
             step_clauses = sorted(set(step_clauses), key=lambda c: sorted(
                 c.literals, key=lambda lit: lit.lstrip('-')))
@@ -120,10 +123,13 @@ class KnowledgeBase:
         for (clause1, clause2, resolvent) in resolutions:
             print(f"Resolving: {clause1} with {clause2}")
             print(f"Result: {resolvent}")
+            if not resolvent.literals:
+                print(
+                    f"Explanation: The resolution of {clause1} and {clause2} results in an empty clause ({{}}).")
         print("------")
 
 
-def format_output(all_steps: List[List[Clause]], entails: bool) -> str:
+def format_output(all_steps: List[List[Clause]], entails: bool, conflict_clauses: Tuple[Clause, Clause]) -> str:
     output_lines = []
 
     def clause_sort_key(clause: Clause) -> list:
@@ -136,16 +142,25 @@ def format_output(all_steps: List[List[Clause]], entails: bool) -> str:
         output_lines.extend(str(clause) for clause in unique_clauses)
 
     output_lines.append("YES" if entails else "NO")
+
     return '\n'.join(output_lines)
 
 
 def parse_input(file_path: str) -> Tuple[Clause, List[Clause]]:
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-        alpha = Clause.parse(lines[0].strip())
-        n = int(lines[1].strip())
-        kb = [Clause.parse(lines[i + 2].strip()) for i in range(n)]
-    return alpha, kb
+    try:
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+            if len(lines) < 2:
+                raise ValueError("Input file must contain at least two lines.")
+            alpha = Clause.parse(lines[0].strip())
+            n = int(lines[1].strip())
+            if len(lines) < n + 2:
+                raise ValueError("Input file does not contain enough clauses.")
+            kb = [Clause.parse(lines[i + 2].strip()) for i in range(n)]
+        return alpha, kb
+    except Exception as e:
+        print(f"Error reading file {file_path}: {e}")
+        exit(1)
 
 
 def main():
@@ -189,13 +204,14 @@ def main():
                 for clause in clauses:
                     kb.add_clause(clause)
 
-                all_steps, entails = kb.pl_resolution(alpha)
-                output = format_output(all_steps, entails)
+                all_steps, entails, conflict_clause1, conflict_clause2 = kb.pl_resolution(
+                    alpha)
+                output = format_output(
+                    all_steps, entails, (conflict_clause1, conflict_clause2))
 
                 with open(output_file, 'w') as file:
                     file.write(output)
 
-                print(f"Processed {input_file} -> {output_file}")
             else:
                 print(f"Input file {input_file} does not exist.")
 
@@ -206,16 +222,17 @@ def main():
         for clause in clauses:
             kb.add_clause(clause)
 
-        all_steps, entails = kb.pl_resolution(alpha)
-        output = format_output(all_steps, entails)
+        all_steps, entails, conflict_clause1, conflict_clause2 = kb.pl_resolution(
+            alpha)
+        output = format_output(
+            all_steps, entails, (conflict_clause1, conflict_clause2))
 
         with open(args.output_file, 'w') as file:
             file.write(output)
 
-        print(f"Processed {args.input_file} -> {args.output_file}")
-
     else:
-        print("Please provide either an input file and an output file, or use the -all option.")
+        print("Please provide either -all flag or both -i and -o flags.")
+        print("Syntax:\npython source_code.py -i <input_file> -o <output_file>\nor\npython source_code.py -all")
 
 
 if __name__ == "__main__":
