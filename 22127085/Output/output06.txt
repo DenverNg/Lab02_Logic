@@ -1,13 +1,13 @@
 9
--P
 P
+-P
 S
 P OR R
 -P OR S
 -Q OR -R
 P OR R OR S
-Q OR R OR S
 -Q OR R OR S
+Q OR R OR S
 7
 {}
 -Q

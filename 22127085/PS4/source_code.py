@@ -123,9 +123,6 @@ class KnowledgeBase:
         for (clause1, clause2, resolvent) in resolutions:
             print(f"Resolving: {clause1} with {clause2}")
             print(f"Result: {resolvent}")
-            if not resolvent.literals:
-                print(
-                    f"Explanation: The resolution of {clause1} and {clause2} results in an empty clause ({{}}).")
         print("------")
 
 
